@@ -11,6 +11,7 @@ const Animal = {
   type: "",
   age: 0,
   star: false,
+  winner: false,
 };
 
 const settings = {
@@ -183,6 +184,100 @@ function displayAnimal(animal) {
     buildList();
   }
 
+  // Winners
+  clone.querySelector("[data-field=winner]").dataset.winner = animal.winner;
+  clone.querySelector("[data-field=winner]").addEventListener("mousedown", clickWinner);
+  function clickWinner() {
+    if (animal.winner === true) {
+      animal.winner = false;
+    } else {
+      tryToMakeAWinner(animal);
+      animal.winner = true;
+    }
+    buildList();
+  }
+
   // append clone to list
   document.querySelector("#list tbody").appendChild(clone);
+}
+
+function tryToMakeAWinner(selectedAnimal) {
+  const winners = allAnimals.filter((animal) => animal.winner);
+  const numberOfWinners = winners.length;
+  const other = winners.filter((animal) => animal.type === selectedAnimal.type).shift();
+
+  // If there is another of the same type
+  if (other !== undefined) {
+    console.log("There can only be one winner of each type!");
+    removeOther(other);
+  } else if (numberOfWinners >= 2) {
+    console.log("There can only be two winners!");
+    removeAorB(winners[0], winners[1]);
+  } else {
+    makeWinner(selectedAnimal);
+  }
+
+  function removeOther(other) {
+    // Ask the user to ignore, or remove 'other'
+    document.querySelector("#remove_other").classList.remove("hide");
+    document.querySelector("#remove_other .closebutton").addEventListener("click", closeDialog);
+    document.querySelector("#remove_other #removeother").addEventListener("click", clickRemoveOther);
+
+    // If ignore - do nothing
+    function closeDialog() {
+      document.querySelector("#remove_other").classList.add("hide");
+      document.querySelector("#remove_other .closebutton").removeEventListener("click", closeDialog);
+      document.querySelector("#remove_other #removeother").removeEventListener("click", clickRemoveOther);
+    }
+
+    // If remove other
+    function clickRemoveOther() {
+      removeWinner(other);
+      makeWinner(selectedAnimal);
+      buildList();
+      closeDialog();
+    }
+  }
+
+  function removeAorB(winnerA, winnerB) {
+    // Ask the user to ignore, or remove A or B
+    document.querySelector("#remove_aorb").classList.remove("hide");
+    document.querySelector("#remove_aorb .closebutton").addEventListener("click", closeDialog);
+    document.querySelector("#remove_aorb #removea").addEventListener("click", clickRemoveA);
+    document.querySelector("#remove_aorb #removeb").addEventListener("click", clickRemoveB);
+
+    // If ignore - do nothing
+    function closeDialog() {
+      document.querySelector("#remove_aorb").classList.add("hide");
+      document.querySelector("#remove_aorb .closebutton").removeEventListener("click", closeDialog);
+      document.querySelector("#remove_aorb #removea").removeEventListener("click", clickRemoveA);
+      document.querySelector("#remove_aorb #removeb").removeEventListener("click", clickRemoveB);
+    }
+
+    function clickRemoveA() {
+      // If remove A:
+      removeWinner(winnerA);
+      makeWinner(selectedAnimal);
+      buildList();
+      closeDialog();
+    }
+
+    function clickRemoveB() {
+      // Else - if remove B
+      removeWinner(winnerB);
+      makeWinner(selectedAnimal);
+      buildList();
+      closeDialog();
+    }
+
+    // If ignore - do nothing
+  }
+
+  function removeWinner(winnerAnimal) {
+    winnerAnimal.winner = false;
+  }
+
+  function makeWinner(animal) {
+    animal.winner = true;
+  }
 }
